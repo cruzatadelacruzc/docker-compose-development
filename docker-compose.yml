@@ -1,0 +1,138 @@
+version: '3'
+services:
+  postgresql:
+    image: postgres:10.13-alpine
+    container_name: postgresql
+    volumes:
+      - ~/volumes/spring/demo/postgresql/data/:/var/lib/postgresql/data/
+    environment:
+#      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+#      - POSTGRES_DB=keycloak
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - 5432:5432
+    networks:
+      - backend_spring
+  s3:
+    image: quay.io/minio/minio:RELEASE.2022-09-01T23-53-36Z.fips
+   container_name: minio
+   volumes:
+     - ~/volumes/s3/minio/data:/data
+   environment:
+     - MINIO_ROOT_USER=minio
+     - MINIO_ROOT_PASSWORD=miniostorage
+   command: server /data --console-address ":9001"
+   ports:
+    - 9000:9000
+    - 9001:9001
+   healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+    interval: 30s
+    timeout: 20s
+    retries: 3
+    networks:
+      - backend_spring
+
+  #keycloak:
+  #  restart: unless-stopped
+  #  networks:
+  #    - backend_spring
+
+  jhipster-registry:
+    restart: unless-stopped
+    image: jhipster/jhipster-registry:v7.3.0
+    volumes:
+      - ./central-server-config:/central-config
+    container_name: jhipster-registry
+    environment:
+      - _JAVA_OPTIONS=-Xmx512m -Xms256m
+      - SPRING_PROFILES_ACTIVE=prod,api-docs,oauth2
+      - SPRING_SECURITY_USER_PASSWORD=admin
+      - JHIPSTER_REGISTRY_PASSWORD=admin
+      - SPRING_CLOUD_CONFIG_SERVER_COMPOSITE_0_TYPE=native
+      - SPRING_CLOUD_CONFIG_SERVER_COMPOSITE_0_SEARCH_LOCATIONS=file:./central-config/docker-config/
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI=http://192.168.1.10:9080/realms/jhipster
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_ID=jhipster-registry
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_SECRET=jhipster-registry
+    depends_on:
+      - keycloak
+    ports:
+       - 8761:8761  
+    networks:
+     - backend_spring
+
+  zookeeper:
+    restart: unless-stopped
+    image: docker.uclv.cu/confluentinc/cp-zookeeper:7.3.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - backend_spring
+
+  kafka:
+    restart: unless-stopped
+    image: docker.uclv.cu/confluentinc/cp-kafka:7.3.1
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - backend_spring
+
+  gateway-app:
+    container_name: gateway-react
+    image: ucm/gateway-react:0.0.1-SNAPSHOT
+    environment:
+      - _JAVA_OPTIONS=-Xmx512m -Xms256m
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8000
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:$${application.registry-config.password}@192.168.1.10:8761/eureka
+      - SPRING_CLOUD_CONFIG_URI=http://admin:$${application.registry-config.password}@192.168.1.10:8761/config
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://192.168.1.10:9080/realms/jhipster
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID=web_app
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET=web_app
+    ports:
+      - 8000:8000
+    depends_on:
+      - keycloak
+      - jhipster-registry
+      - elasticsearch
+    networks:
+      - backend_spring
+
+  directory-app:
+    container_name: directory
+    image: ucm/directory:0.0.1-snapshot
+    environment:
+      - _JAVA_OPTIONS=-Xmx512m -Xms256m
+      - SPRING_PROFILES_ACTIVE=prod
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://admin:$${application.registry-config.password}@jhipster-registry:8761/eureka
+      - SPRING_CLOUD_CONFIG_URI=http://admin:$${application.registry-config.password}@jhipster-registry:8761/config
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/directory
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://192.168.1.10:9080/realms/jhipster
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID=internal
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET=internal
+      - SPRING_ELASTICSEARCH_REST_URIS=http://192.168.1.10:9200
+    ports:
+      - 127.0.0.1:8081:8081
+    depends_on:
+      - keycloak
+      - jhipster-registry
+      - elasticsearch
+      - s3
+      - postgresql
+    networks:
+      - backend_spring    
+  
+networks:
+  backend_spring:
+

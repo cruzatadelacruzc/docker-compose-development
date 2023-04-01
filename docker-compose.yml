@@ -113,22 +113,6 @@ services:
     networks:
       - backend_spring
 
-  kibana:
-    restart: unless-stopped
-    image: docker.elastic.co/kibana/kibana:7.6.2
-    container_name: kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=elastic  
-      - ELASTICSEARCH_PASSWORD=elastic
-    ports:
-      - 5601:5601
-    # Cada vez que descomentareo el volumen del fichero kibana.yml este no pincha
-    volumes:
-      - ~/volumes/elasticsearch/kibana.yml:/usr/share/kibana/config/kibana.yml
-    depends_on:
-      - elasticsearch    
-
   gateway-app:
     container_name: gateway-react
     image: ucm/gateway-react:0.0.1-SNAPSHOT

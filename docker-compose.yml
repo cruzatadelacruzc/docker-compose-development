@@ -31,8 +31,8 @@ services:
     interval: 30s
     timeout: 20s
     retries: 3
-    networks:
-      - backend_spring
+   networks:
+     - backend_spring
 
   #keycloak:
   #  restart: unless-stopped

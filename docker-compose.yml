@@ -15,7 +15,7 @@ services:
     networks:
       - backend_spring
   s3:
-    image: quay.io/minio/minio:RELEASE.2022-09-01T23-53-36Z.fips
+   image: quay.io/minio/minio:RELEASE.2022-09-01T23-53-36Z.fips
    container_name: minio
    volumes:
      - ~/volumes/s3/minio/data:/data

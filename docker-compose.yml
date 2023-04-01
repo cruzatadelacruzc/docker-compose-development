@@ -86,6 +86,49 @@ services:
     networks:
       - backend_spring
 
+  elasticsearch:
+    restart: unless-stopped
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms256m -Xmx512m"
+      - "ES_JAVA_OPTS=-XX:UseAVX=0"
+      - ELASTIC_PASSWORD=elastic
+      - xpack.security.enabled=true
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.keystore.path=/usr/share/elasticsearch/config/certificates/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=/usr/share/elasticsearch/config/certificates/elastic-certificates.p12
+      - "http.cors.enabled=true"
+      - "http.cors.allow-origin=*"
+      - "http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
+      - "http.cors.allow-credentials=true" 
+      
+    volumes:
+      - ~/volumes/elasticsearch/single:/usr/share/elasticsearch/data
+      - ~/volumes/elasticsearch/certs:/usr/share/elasticsearch/config/certificates
+    ports:
+      - 9200:9200
+    networks:
+      - backend_spring
+
+  kibana:
+    restart: unless-stopped
+    image: docker.elastic.co/kibana/kibana:7.6.2
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic  
+      - ELASTICSEARCH_PASSWORD=elastic
+    ports:
+      - 5601:5601
+    # Cada vez que descomentareo el volumen del fichero kibana.yml este no pincha
+    volumes:
+      - ~/volumes/elasticsearch/kibana.yml:/usr/share/kibana/config/kibana.yml
+    depends_on:
+      - elasticsearch    
+
   gateway-app:
     container_name: gateway-react
     image: ucm/gateway-react:0.0.1-SNAPSHOT

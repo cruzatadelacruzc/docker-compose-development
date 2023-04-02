@@ -4,11 +4,10 @@ services:
     image: postgres:10.13-alpine
     container_name: postgresql
     volumes:
-      - ~/volumes/spring/demo/postgresql/data/:/var/lib/postgresql/data/
+      - ~/volumes/database/postgresql/data/:/var/lib/postgresql/data/
     environment:
-#      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-#      - POSTGRES_DB=keycloak
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=keycloak
       - POSTGRES_HOST_AUTH_METHOD=trust
     ports:
       - 5432:5432
@@ -20,8 +19,8 @@ services:
    volumes:
      - ~/volumes/s3/minio/data:/data
    environment:
-     - MINIO_ROOT_USER=minio
-     - MINIO_ROOT_PASSWORD=miniostorage
+     - MINIO_ROOT_USER=${MINIO_KEY}
+     - MINIO_ROOT_PASSWORD=${MAIN_PASSWORD}
    command: server /data --console-address ":9001"
    ports:
     - 9000:9000
@@ -34,10 +33,31 @@ services:
    networks:
      - backend_spring
 
-  #keycloak:
-  #  restart: unless-stopped
-  #  networks:
-  #    - backend_spring
+#  keycloak:
+#   image: ucm/keycloak
+#   depends_on:
+#     - postgresql
+#   container_name: keycloak
+#   restart: unless-stopped
+#   command:
+#     [
+#     'start',
+#     '--db-url=jdbc:postgresql://postgresql/keycloak',
+#     '--https-port=9443',
+#     '--https-certificate-file=/opt/keycloak/letsencrypt/live/srv134255-225181.vps.etecsa.cu/fullchain.pem',
+#     '--https-certificate-key-file=/opt/keycloak/letsencrypt/live/srv134255-225181.vps.etecsa.cu/privkey.pem'
+#     ]
+#   volumes:
+#     - /srv/letsencrypt:/opt/keycloak/letsencrypt
+#     - /srv/customTheme:/opt/keycloak/themes
+#   environment:
+#     - KC_DB_USERNAME=postgres
+#     - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
+#     - KC_HOSTNAME=srv134255-225181.vps.etecsa.cu
+#   ports:
+#     - 9443:9443
+#   networks:
+#     - backend_spring
 
   jhipster-registry:
     restart: unless-stopped
@@ -48,13 +68,13 @@ services:
     environment:
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=prod,api-docs,oauth2
-      - SPRING_SECURITY_USER_PASSWORD=admin
-      - JHIPSTER_REGISTRY_PASSWORD=admin
+      - SPRING_SECURITY_USER_PASSWORD=${MAIN_PASSWORD}
+      - JHIPSTER_REGISTRY_PASSWORD=${MAIN_PASSWORD}
       - SPRING_CLOUD_CONFIG_SERVER_COMPOSITE_0_TYPE=native
       - SPRING_CLOUD_CONFIG_SERVER_COMPOSITE_0_SEARCH_LOCATIONS=file:./central-config/docker-config/
       - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_OIDC_ISSUER_URI=http://192.168.1.10:9080/realms/jhipster
-      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_ID=jhipster-registry
-      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_SECRET=jhipster-registry
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_ID=${CLIENT_ID}
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_OIDC_CLIENT_SECRET=${CLIENT_SECRECT}
     #depends_on:
     #  - keycloak
     ports:
@@ -94,7 +114,7 @@ services:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms256m -Xmx512m"
       - "ES_JAVA_OPTS=-XX:UseAVX=0"
-      - ELASTIC_PASSWORD=elastic
+      - ELASTIC_PASSWORD=${MAIN_PASSWORD}
       - xpack.security.enabled=true
       - xpack.security.transport.ssl.enabled=true
       - xpack.security.transport.ssl.verification_mode=certificate

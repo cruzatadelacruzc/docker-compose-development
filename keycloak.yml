@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  keycloak:
+   image: ucm/keycloak
+   depends_on:
+     - postgresql
+   container_name: keycloak
+   restart: unless-stopped
+   command:
+     [
+     'start',
+     '--db-url=jdbc:postgresql://postgresql/keycloak',
+     ]
+   volumes:
+     - ${VOLUMES_DIR}/customTheme:/opt/keycloak/themes
+   environment:
+     - KC_DB_USERNAME=postgres
+     - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
+   ports:
+     - 9443:9443
+   networks:
+     - backend

@@ -52,7 +52,7 @@ services:
    ports:
      - 9443:9443
    networks:
-     - backend
+     - backend_spring
 
   jhipster-registry:
     restart: unless-stopped

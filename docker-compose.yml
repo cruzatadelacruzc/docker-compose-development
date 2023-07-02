@@ -50,7 +50,7 @@ services:
      - KC_DB_USERNAME=postgres
      - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
    ports:
-     - 9443:9443
+     - 9080:9080
    networks:
      - backend_spring
 

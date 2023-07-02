@@ -4,7 +4,7 @@ services:
     image: postgres:10.13-alpine
     container_name: postgresql
     volumes:
-      - ~/volumes/database/postgresql/data/:/var/lib/postgresql/data/
+      - ${VOLUMES_DIR}/database/postgresql/data/:/var/lib/postgresql/data/
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=keycloak
@@ -17,7 +17,7 @@ services:
    image: quay.io/minio/minio:RELEASE.2022-09-01T23-53-36Z.fips
    container_name: minio
    volumes:
-     - ~/volumes/s3/minio/data:/data
+     - ${VOLUMES_DIR}/s3/minio/data:/data
    environment:
      - MINIO_ROOT_USER=${MINIO_KEY}
      - MINIO_ROOT_PASSWORD=${MAIN_PASSWORD}
@@ -120,8 +120,8 @@ services:
       - "http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
       - "http.cors.allow-credentials=true"       
     volumes:
-      - ~/volumes/elasticsearch/single:/usr/share/elasticsearch/data
-      - ~/volumes/elasticsearch/certs:/usr/share/elasticsearch/config/certificates
+      - ${VOLUMES_DIR}/elasticsearch/single:/usr/share/elasticsearch/data
+      - ${VOLUMES_DIR}/elasticsearch/certs:/usr/share/elasticsearch/config/certificates
     ports:
       - 9200:9200
     networks:

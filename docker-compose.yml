@@ -41,7 +41,7 @@ services:
    restart: unless-stopped
    command:
      [
-     'start',
+     'start-dev',
      '--db-url=jdbc:postgresql://postgresql/keycloak',
      ]
    volumes:

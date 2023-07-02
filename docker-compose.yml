@@ -51,7 +51,7 @@ services:
      - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
      - KC_HOSTNAME=keycloak.dev
    ports:
-     - 9080:8080
+     - 9080:8443
    networks:
      - backend_spring
 

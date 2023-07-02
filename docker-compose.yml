@@ -49,6 +49,7 @@ services:
    environment:
      - KC_DB_USERNAME=postgres
      - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
+     - KC_HOSTNAME=localhost
    ports:
      - 9080:8080
    networks:

@@ -41,7 +41,7 @@ services:
    restart: unless-stopped
    command:
      [
-     'start-dev',
+     'start',
      '--db-url=jdbc:postgresql://postgresql/keycloak',
      ]
    volumes:
@@ -50,7 +50,7 @@ services:
      - KC_DB_USERNAME=postgres
      - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
    ports:
-     - 9080:9080
+     - 9080:8080
    networks:
      - backend_spring
 

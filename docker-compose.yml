@@ -33,31 +33,26 @@ services:
    networks:
      - backend_spring
 
-#  keycloak:
-#   image: ucm/keycloak
-#   depends_on:
-#     - postgresql
-#   container_name: keycloak
-#   restart: unless-stopped
-#   command:
-#     [
-#     'start',
-#     '--db-url=jdbc:postgresql://postgresql/keycloak',
-#     '--https-port=9443',
-#     '--https-certificate-file=/opt/keycloak/letsencrypt/live/srv134255-225181.vps.etecsa.cu/fullchain.pem',
-#     '--https-certificate-key-file=/opt/keycloak/letsencrypt/live/srv134255-225181.vps.etecsa.cu/privkey.pem'
-#     ]
-#   volumes:
-#     - /srv/letsencrypt:/opt/keycloak/letsencrypt
-#     - /srv/customTheme:/opt/keycloak/themes
-#   environment:
-#     - KC_DB_USERNAME=postgres
-#     - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
-#     - KC_HOSTNAME=srv134255-225181.vps.etecsa.cu
-#   ports:
-#     - 9443:9443
-#   networks:
-#     - backend_spring
+  keycloak:
+   image: ucm/keycloak
+   depends_on:
+     - postgresql
+   container_name: keycloak
+   restart: unless-stopped
+   command:
+     [
+     'start',
+     '--db-url=jdbc:postgresql://postgresql/keycloak',
+     ]
+   volumes:
+     - ${VOLUMES_DIR}/customTheme:/opt/keycloak/themes
+   environment:
+     - KC_DB_USERNAME=postgres
+     - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
+   ports:
+     - 9443:9443
+   networks:
+     - backend
 
   jhipster-registry:
     restart: unless-stopped

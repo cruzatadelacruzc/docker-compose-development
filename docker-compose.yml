@@ -35,23 +35,23 @@ services:
 
   keycloak:
    image: ucm/keycloak
-   depends_on:
-     - postgresql
+   #depends_on:
+    # - postgresql
    container_name: keycloak
    restart: unless-stopped
    command:
      [
-     'start',
-     '--db-url=jdbc:postgresql://postgresql/keycloak',
+     'start-dev',
+     #'--db-url=jdbc:postgresql://postgresql/keycloak',
      ]
    volumes:
      - ${VOLUMES_DIR}/customTheme:/opt/keycloak/themes
-   environment:
-     - KC_DB_USERNAME=postgres
-     - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
-     - KC_HOSTNAME=keycloak.dev
+   #environment:
+    # - KC_DB_USERNAME=postgres
+     #- KC_DB_PASSWORD=${POSTGRES_PASSWORD}
+     #- KC_HOSTNAME=keycloak.dev
    ports:
-     - 9080:8443
+     - 9080:8080
    networks:
      - backend_spring
 
